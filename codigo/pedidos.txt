@@ -1,0 +1,7 @@
+6
+James Sandero;147;0.90;12
+Jean Green;227;0.50;0
+Hank McCurtis;370;0.20;0
+Scott Springs;250;0.90;15
+Peter Solis;25;0.90;15
+John Senna;5;0.9;2
