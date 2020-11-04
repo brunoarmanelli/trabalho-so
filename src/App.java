@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
+import java.util.concurrent.Semaphore;
 
 public class App {
 
@@ -26,14 +27,14 @@ public class App {
 		return pedidos;
 	}
 
-	public static void metodoTradicional(ArrayList<Pedido> pedidos, int nImpressoras) {
+	public static void metodoTradicional(ArrayList<Pedido> pedidos, int nImpressoras) throws InterruptedException {
 
 		System.out.println("Metodo tradicional da grafica:");
 		System.out.println("Pedidos são realizados na ordem de sua chegada\n");
-		impressao(pedidos, nImpressoras);
+		imprimir(pedidos);
 	}
 
-	public static void priorizarTempoMedio(ArrayList<Pedido> pedidos, int nImpressoras) {
+	public static void priorizarTempoMedio(ArrayList<Pedido> pedidos, int nImpressoras) throws InterruptedException {
 		Collections.sort(pedidos, new Comparator<Pedido>() {
 			@Override
 			public int compare(Pedido o1, Pedido o2) {
@@ -47,10 +48,10 @@ public class App {
 		System.out.println("\nMinimizando o tempo medio:");
 		System.out.println(
 				"Para isso priozimamos pedidos com menor tempo de execuxão, portanto com menor numero de paginas\n");
-		impressao(pedidos, nImpressoras);
+		imprimir(pedidos);
 	}
 
-	public static void priorizar12h(ArrayList<Pedido> pedidos, int nImpressoras) {
+	public static void priorizar12h(ArrayList<Pedido> pedidos, int nImpressoras) throws InterruptedException {
 		Collections.sort(pedidos, new Comparator<Pedido>() {
 			@Override
 			public int compare(Pedido o1, Pedido o2) {
@@ -63,10 +64,10 @@ public class App {
 		});
 		System.out.println("\nMaximixando a quantidade de trabalhos impressoes antes do meio dia:");
 		System.out.println("Para isso priozimamos pedidos com menor numero de paginas\n");
-		impressao(pedidos, nImpressoras);
+		imprimir(pedidos);
 	}
 
-	public static void priorizarPrazo(ArrayList<Pedido> pedidos, int nImpressoras) {
+	public static void priorizarPrazo(ArrayList<Pedido> pedidos, int nImpressoras) throws InterruptedException {
 		Collections.sort(pedidos, new Comparator<Pedido>() {
 			@Override
 			public int compare(Pedido o1, Pedido o2) {
@@ -84,66 +85,39 @@ public class App {
 
 		System.out.println("\nAtendendo a prazos estritos:");
 		System.out.println("Para isso priozimamos pedidos que possuem prazos menores\n");
-		impressao(pedidos, nImpressoras);
+		imprimir(pedidos);
 	}
 
-	public static void impressao(ArrayList<Pedido> pedidos, int nImpressoras) {
+	public static void imprimir(ArrayList<Pedido> pedidos) throws InterruptedException {
 
-		long tamanho = pedidos.stream().count();
+		Semaphore sem = new Semaphore(1);
 
-		double tempoTotal = 0;
-		double receita = 0;
+		Metricas met = new Metricas();
 
-		double tempos = 0;
+		Impressao t1 = new Impressao(sem, pedidos, met, "Impressora 1");
+		Impressao t2 = new Impressao(sem, pedidos, met, "Impressora 2");
 
-		int pedidosAte12h = 0;
-		int horas4 = 240;
-		boolean passou12 = false;
+		t1.start();
+		t2.start();
 
-		int pedidosPrazo = 0;
-		int pedidosPrazoCount = 0;
+		t1.join();
+		t2.join();
 
-		while (pedidos.stream().count() > 0) {
-			if (pedidos.stream().count() > 2)
-				tempoTotal += 0.25;
-			for (int i = 0; i < nImpressoras; i++) {
-				try {
-					Pedido pedido = pedidos.remove(0);
-					Impressora imp = new Impressora(pedido);
-					tempoTotal += imp.tempoGasto;
-					receita += imp.lucro;
-					tempos += tempoTotal;
-					if (horas4 > 0 && horas4 > imp.tempoGasto && !passou12) {
-						pedidosAte12h++;
-						horas4 -= imp.tempoGasto;
-					} else
-						passou12 = true;
-					if (pedido.prazo >= tempoTotal && pedido.prazo != 0)
-						pedidosPrazo++;
-					if (pedido.prazo != 0)
-						pedidosPrazoCount++;
-				} catch (IndexOutOfBoundsException e) {
-//					System.out.println(e);
-				}
-			}
-		}
+		double dias = Math.ceil(met.getTempoTotal()/ 480.0);
+		double custo = 900 * dias * 2;
 
-		double dias = Math.ceil(tempoTotal / 480.0);
-		double custo = 900 * dias * nImpressoras;
-
-		double tempoMedio = Math.round((tempos / tamanho) * 100);
+		double tempoMedio = Math.round((met.getSomaTempos() / met.getCount()) * 100);
 		tempoMedio /= 100;
-		receita = Math.round(receita * 100);
-		receita /= 100;
 
-		System.out.println("Tempo total: " + tempoTotal + " minutos");
+		System.out.println("Tempo total: " + met.getTempoTotal() + " minutos");
 		System.out.println("Tempo medio: " + tempoMedio + " minutos");
-		System.out.println("Receita: " + receita + " dinheiros");
+		System.out.println("Receita: " + met.getReceita() + " dinheiros");
 		System.out.println("Custo: " + custo + " dinheiros");
-		System.out.println("Lucro: " + (receita - custo) + " dinheiros");
-		System.out.println("Pedidos antes do meio dia: " + pedidosAte12h);
-		System.out.println("Pedidos atendidos dentro do prazo: " + pedidosPrazo + " (total de pedidos com prazo: "
-				+ pedidosPrazoCount + ")");
+		System.out.println("Lucro: " + (met.getReceita() - custo) + " dinheiros");
+		System.out.println("Pedidos antes do meio dia: " + met.getPedidosAntes12()+ " (total de pedidos com prazo: "
+				+ met.getCount() + ")");
+		System.out.println("Pedidos atendidos dentro do prazo: " + met.getPedidosPrazo() + " (total de pedidos com prazo: "
+				+ met.getPedidosPrazoCount() + ")");
 	}
 
 	public static double lucroNImpressoras(int dias, int nImpressoras, int custoInicial) {
@@ -174,6 +148,6 @@ public class App {
 		System.out.println("------------------------------------------");
 		priorizarPrazo(lerArquivo("pedidos.txt"), 2);
 		System.out.println("------------------------------------------");
-		valeAPena();
+//		valeAPena();
 	}
 }
