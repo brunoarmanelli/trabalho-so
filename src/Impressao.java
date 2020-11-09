@@ -3,14 +3,16 @@ import java.util.concurrent.Semaphore;
 
 public class Impressao extends Thread {
 
-	Semaphore sem;
+	Semaphore sem1;
+	Semaphore sem2;
 	ArrayList<Pedido> pedidos;
 	String nome;
 	Metricas metricas;
 
-	public Impressao(Semaphore sem, ArrayList<Pedido> pedidos, Metricas metricas, String nome) {
+	public Impressao(Semaphore sem1, Semaphore sem2, ArrayList<Pedido> pedidos, Metricas metricas, String nome) {
 		super();
-		this.sem = sem;
+		this.sem1 = sem1;
+		this.sem2=sem2;
 		this.pedidos = pedidos;
 		this.metricas = metricas;
 		this.nome = nome;
@@ -20,22 +22,22 @@ public class Impressao extends Thread {
 	public void run() {
 
 		try {
+			//SEMAFORO PEDIDOS SIZE
 			while (pedidos.size() > 0) {
 				
-				sem.acquire();
+				sem1.acquire();
 				Pedido p = pedidos.remove(0);
-				sem.release();
+				sem1.release();
 				
 				double tempo = p.paginas / 80.0;
 				double receita = p.paginas * p.precoPagina;
 
 				Thread.sleep((long) tempo);
 				
-				sem.acquire();
+				sem2.acquire();
 				metricas.addMetricas(tempo, receita, p.prazo);
-				sem.release();
+				sem2.release();
 
-//				System.out.println(nome + p);
 			}
 		} catch (InterruptedException e) {
 			System.out.println(e);

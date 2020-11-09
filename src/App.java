@@ -73,14 +73,11 @@ public class App {
 
 				@Override
 				public int compare(Pedido o1, Pedido o2) {
-					if (o1.prazo == 0)
-						return 1;
-					if (o2.prazo == 0)
-						return -1;
-					if (o1.prazo > o2.prazo)
-						return 1;
 					if (o1.prazo < o2.prazo)
+						return 1;
+					else if (o1.prazo > o2.prazo)
 						return -1;
+					else 
 					return 0;
 				}
 			});
@@ -95,12 +92,13 @@ public class App {
 
 	public static void imprimir(ArrayList<Pedido> pedidos) throws InterruptedException {
 
-		Semaphore sem = new Semaphore(1);
+		Semaphore sem1 = new Semaphore(1);
+		Semaphore sem2 = new Semaphore(1);
 
 		Metricas met = new Metricas();
 
-		Impressao t1 = new Impressao(sem, pedidos, met, "Impressora 1");
-		Impressao t2 = new Impressao(sem, pedidos, met, "Impressora 2");
+		Impressao t1 = new Impressao(sem1, sem2, pedidos, met, "Impressora 1");
+		Impressao t2 = new Impressao(sem1, sem2, pedidos, met, "Impressora 2");
 
 		t1.start();
 		t2.start();
@@ -113,12 +111,15 @@ public class App {
 
 		double tempoMedio = Math.round((met.getSomaTempos() / met.getCount()) * 100);
 		tempoMedio /= 100;
+		
+		double receita = Math.round(met.getReceita() * 100);
+		receita /= 100;
 
 		System.out.println("Tempo total: " + met.getTempoTotal() + " minutos");
 		System.out.println("Tempo medio: " + tempoMedio + " minutos");
-		System.out.println("Receita: " + met.getReceita() + " dinheiros");
+		System.out.println("Receita: " + receita + " dinheiros");
 		System.out.println("Custo: " + custo + " dinheiros");
-		System.out.println("Lucro: " + (met.getReceita() - custo) + " dinheiros");
+		System.out.println("Lucro: " + (receita - custo) + " dinheiros");
 		System.out.println("Pedidos antes do meio dia: " + met.getPedidosAntes12() + " (total de pedidos: "
 				+ met.getCount() + ")");
 		System.out.println("Pedidos atendidos dentro do prazo: " + met.getPedidosPrazo()
@@ -134,13 +135,14 @@ public class App {
 
 	public static void valeAPena(ArrayList<Pedido> pedidos) throws InterruptedException {
 
-		Semaphore sem = new Semaphore(1);
+		Semaphore sem1 = new Semaphore(1);
+		Semaphore sem2 = new Semaphore(1);
 
 		Metricas met = new Metricas();
 
-		Impressao t1 = new Impressao(sem, pedidos, met, "Impressora 1");
-		Impressao t2 = new Impressao(sem, pedidos, met, "Impressora 2");
-		Impressao t3 = new Impressao(sem, pedidos, met, "Impressora 3");
+		Impressao t1 = new Impressao(sem1, sem2, pedidos, met, "Impressora 1");
+		Impressao t2 = new Impressao(sem1, sem2, pedidos, met, "Impressora 2");
+		Impressao t3 = new Impressao(sem1, sem2, pedidos, met, "Impressora 3");
 
 		t1.start();
 		t2.start();
@@ -156,14 +158,17 @@ public class App {
 		double tempoMedio = Math.round((met.getSomaTempos() / met.getCount()) * 100);
 		tempoMedio /= 100;
 		
+		double receita = Math.round(met.getReceita() * 100);
+		receita /= 100;
+		
 		System.out.println("Metodo tradicional da grafica utilizando 3 impressoras:");
 		System.out.println("Há uma melhora no tempo médio, na quantidades de pedidos impressos antes do meio dia e na quantidade de prazos atendidos\n");
 
 		System.out.println("Tempo total: " + met.getTempoTotal() + " minutos");
 		System.out.println("Tempo medio: " + tempoMedio + " minutos");
-		System.out.println("Receita: " + met.getReceita() + " dinheiros");
+		System.out.println("Receita: " + receita + " dinheiros");
 		System.out.println("Custo: " + custo + " dinheiros");
-		System.out.println("Lucro: " + (met.getReceita() - custo) + " dinheiros");
+		System.out.println("Lucro: " + (receita - custo) + " dinheiros");
 		System.out.println("Pedidos antes do meio dia: " + met.getPedidosAntes12() + " (total de pedidos com prazo: "
 				+ met.getCount() + ")");
 		System.out.println("Pedidos atendidos dentro do prazo: " + met.getPedidosPrazo()
