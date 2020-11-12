@@ -161,7 +161,7 @@ public class App {
 		double receita = Math.round(met.getReceita() * 100);
 		receita /= 100;
 		
-		System.out.println("Metodo tradicional da grafica utilizando 3 impressoras:");
+		System.out.println("\nMetodo tradicional da grafica utilizando 3 impressoras:");
 		System.out.println("Há uma melhora no tempo médio, na quantidades de pedidos impressos antes do meio dia e na quantidade de prazos atendidos\n");
 
 		System.out.println("Tempo total: " + met.getTempoTotal() + " minutos");
