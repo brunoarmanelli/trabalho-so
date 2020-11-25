@@ -8,7 +8,8 @@ public class Impressao extends Thread {
 	ArrayList<Pedido> pedidos;
 	String nome;
 	Metricas metricas;
-
+	Bandeja bandeja = new Bandeja();
+	
 	public Impressao(Semaphore sem1, Semaphore sem2, ArrayList<Pedido> pedidos, Metricas metricas, String nome) {
 		super();
 		this.sem1 = sem1;
@@ -22,7 +23,6 @@ public class Impressao extends Thread {
 	public void run() {
 
 		try {
-			// SEMAFORO PEDIDOS SIZE
 			int tam = 0;
 			do {
 
@@ -41,11 +41,19 @@ public class Impressao extends Thread {
 
 				double tempo = p.paginas / 80.0;
 				double receita = p.paginas * p.precoPagina;
+				
+				int faltasDePaginaFIFO = 0;		
+				if (bandeja.trocarPapelFIFO(p.tipoPapel))
+					faltasDePaginaFIFO++;
+				
+				int faltasDePaginaEnvelhecimento = 0;	
+				if (bandeja.trocarPapelEnvelhecimento(p.tipoPapel))
+					faltasDePaginaEnvelhecimento++;
 
 				Thread.sleep((long) tempo);
 
 				sem2.acquire();
-				metricas.addMetricas(tempo, receita, p.prazo);
+				metricas.addMetricas(tempo, receita, p.prazo, faltasDePaginaFIFO, faltasDePaginaEnvelhecimento, nome);
 				sem2.release();
 
 			} while (tam > 0);

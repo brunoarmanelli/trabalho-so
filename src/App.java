@@ -21,7 +21,8 @@ public class App {
 			int paginas = Integer.parseInt(pedido[1]);
 			Double precoPagina = Double.parseDouble(pedido[2]);
 			int prazo = Integer.parseInt(pedido[3]);
-			pedidos.add(new Pedido(nome, paginas, precoPagina, prazo));
+			int tipoPapel = Integer.parseInt(pedido[4]);
+			pedidos.add(new Pedido(nome, paginas, precoPagina, prazo, tipoPapel));
 		}
 
 		return pedidos;
@@ -77,8 +78,8 @@ public class App {
 						return 1;
 					else if (o1.prazo > o2.prazo)
 						return -1;
-					else 
-					return 0;
+					else
+						return 0;
 				}
 			});
 		} catch (Exception e) {
@@ -111,7 +112,7 @@ public class App {
 
 		double tempoMedio = Math.round((met.getSomaTempos() / met.getCount()) * 100);
 		tempoMedio /= 100;
-		
+
 		double receita = Math.round(met.getReceita() * 100);
 		receita /= 100;
 
@@ -124,6 +125,8 @@ public class App {
 				+ met.getCount() + ")");
 		System.out.println("Pedidos atendidos dentro do prazo: " + met.getPedidosPrazo()
 				+ " (total de pedidos com prazo: " + met.getPedidosPrazoCount() + ")");
+		System.out.println("Faltas de página (FIFO): " + met.getFaltasPaginaFIFO());
+		System.out.println("Faltas de página (Envelhecimento): " + met.getFaltasPaginaEnvelhecimento());
 	}
 
 	public static double lucroNImpressoras(int dias, int nImpressoras, int custoInicial) {
@@ -157,12 +160,13 @@ public class App {
 
 		double tempoMedio = Math.round((met.getSomaTempos() / met.getCount()) * 100);
 		tempoMedio /= 100;
-		
+
 		double receita = Math.round(met.getReceita() * 100);
 		receita /= 100;
-		
+
 		System.out.println("\nMetodo tradicional da grafica utilizando 3 impressoras:");
-		System.out.println("Há uma melhora no tempo médio, na quantidades de pedidos impressos antes do meio dia e na quantidade de prazos atendidos\n");
+		System.out.println(
+				"Há uma melhora no tempo médio, na quantidades de pedidos impressos antes do meio dia e na quantidade de prazos atendidos\n");
 
 		System.out.println("Tempo total: " + met.getTempoTotal() + " minutos");
 		System.out.println("Tempo medio: " + tempoMedio + " minutos");
@@ -173,27 +177,28 @@ public class App {
 				+ met.getCount() + ")");
 		System.out.println("Pedidos atendidos dentro do prazo: " + met.getPedidosPrazo()
 				+ " (total de pedidos com prazo: " + met.getPedidosPrazoCount() + ")");
-		
-		
+		System.out.println("Faltas de página (FIFO): " + met.getFaltasPaginaFIFO());
+		System.out.println("Faltas de página (Envelhecimento): " + met.getFaltasPaginaEnvelhecimento());
+
 		int i = 0;
 		while (true) {
 			if (lucroNImpressoras(i, 2, 0) < lucroNImpressoras(i, 3, 45000))
 				break;
 			i++;
 		}
-		System.out
-		.println("\nPS: Caso compre uma nova impressora, o lucro só será maior do que o atual após " + i + " dias, utilizando a media fornecida");
+		System.out.println("\nPS: Caso compre uma nova impressora, o lucro só será maior do que o atual após " + i
+				+ " dias, utilizando a media fornecida");
 	}
 
 	public static void main(String[] args) throws Exception {
-		metodoTradicional(lerArquivo("pedidos.txt"));
+		metodoTradicional(lerArquivo("dadosGrafica2020.txt"));
 		System.out.println("------------------------------------------");
-		priorizarTempoMedio(lerArquivo("pedidos.txt"));
+		priorizarTempoMedio(lerArquivo("dadosGrafica2020.txt"));
 		System.out.println("------------------------------------------");
-		priorizar12h(lerArquivo("pedidos.txt"));
+		priorizar12h(lerArquivo("dadosGrafica2020.txt"));
 		System.out.println("------------------------------------------");
-		priorizarPrazo(lerArquivo("pedidos.txt"));
+		priorizarPrazo(lerArquivo("dadosGrafica2020.txt"));
 		System.out.println("------------------------------------------");
-		valeAPena(lerArquivo("pedidos.txt"));
+		valeAPena(lerArquivo("dadosGrafica2020.txt"));
 	}
 }
